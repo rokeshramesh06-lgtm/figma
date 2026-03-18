@@ -22,6 +22,8 @@ export default function AuthScreen({
   const [form, setForm] = useState(initialForm);
   const [serverOriginDraft, setServerOriginDraft] = useState(serverOrigin);
   const [serverOriginMessage, setServerOriginMessage] = useState("");
+  const hasServerOriginDraft = Boolean(serverOriginDraft.trim());
+  const shouldShowInlineServerSetup = isCheckingServerOrigin || requiresServerOrigin;
 
   useEffect(() => {
     setForm((current) => ({
@@ -42,11 +44,34 @@ export default function AuthScreen({
 
   async function handleSubmit(event) {
     event.preventDefault();
+
+    if (!serverOrigin && hasServerOriginDraft) {
+      const savedServerOrigin = onSaveServerOrigin(serverOriginDraft);
+
+      if (!savedServerOrigin) {
+        setServerOriginMessage("Enter a full backend URL like https://your-backend.example.com.");
+        return;
+      }
+
+      setServerOriginDraft(savedServerOrigin);
+      setServerOriginMessage(`Backend set to ${savedServerOrigin}`);
+    }
+
+    if (!serverOrigin && !hasServerOriginDraft) {
+      setServerOriginMessage("Enter a backend URL below, then press the button again.");
+      return;
+    }
+
     await onSubmit(form);
   }
 
   function handleSaveServerOrigin() {
     const savedServerOrigin = onSaveServerOrigin(serverOriginDraft);
+    if (!savedServerOrigin) {
+      setServerOriginMessage("Enter a full backend URL like https://your-backend.example.com.");
+      return;
+    }
+
     setServerOriginDraft(savedServerOrigin);
     setServerOriginMessage(`Backend set to ${savedServerOrigin}`);
   }
@@ -55,6 +80,61 @@ export default function AuthScreen({
     const savedServerOrigin = onSaveServerOrigin(defaultServerOrigin);
     setServerOriginDraft(savedServerOrigin);
     setServerOriginMessage(`Backend reset to ${savedServerOrigin}`);
+  }
+
+  function renderServerPanel(isInline = false) {
+    return (
+      <section className={`server-panel${isInline ? " inline-server-panel" : ""}`}>
+        <p className="eyebrow">Backend URL</p>
+        <p className="subtle-copy">
+          Paste the backend origin here. The app will save it automatically when you sign in or
+          sign up.
+        </p>
+
+        {requiresServerOrigin && !isCheckingServerOrigin ? (
+          <p className="server-warning">
+            No same-origin backend was detected for this deployment yet. Enter a backend URL, or
+            try detecting a same-origin `/api` backend again.
+          </p>
+        ) : null}
+
+        <label className="field">
+          <span>Server</span>
+          <input
+            name="serverOrigin"
+            onChange={(event) => {
+              setServerOriginDraft(event.target.value);
+              setServerOriginMessage("");
+            }}
+            placeholder="https://your-backend.example.com"
+            type="url"
+            value={serverOriginDraft}
+          />
+        </label>
+
+        <div className="server-actions">
+          <button className="secondary-button" disabled={isCheckingServerOrigin} onClick={handleSaveServerOrigin} type="button">
+            Save backend
+          </button>
+          <button
+            className="secondary-button"
+            disabled={isCheckingServerOrigin}
+            onClick={onDetectServerOrigin}
+            type="button"
+          >
+            {isCheckingServerOrigin ? "Checking..." : "Detect backend"}
+          </button>
+          <button className="icon-button" disabled={isCheckingServerOrigin} onClick={handleUseLocalServer} type="button">
+            Use local backend
+          </button>
+        </div>
+
+        <p className="server-copy">
+          Current backend: {serverOrigin || "Not configured yet"}
+        </p>
+        {serverOriginMessage ? <p className="server-copy">{serverOriginMessage}</p> : null}
+      </section>
+    );
   }
 
   return (
@@ -113,6 +193,8 @@ export default function AuthScreen({
             />
           </label>
 
+          {shouldShowInlineServerSetup ? renderServerPanel(true) : null}
+
           {error ? <p className="form-error">{error}</p> : null}
 
           {isCheckingServerOrigin ? (
@@ -121,13 +203,13 @@ export default function AuthScreen({
 
           {!isCheckingServerOrigin && requiresServerOrigin ? (
             <p className="form-error">
-              Set a backend URL before signing in or signing up.
+              Enter a backend URL above. You can paste it and submit right away.
             </p>
           ) : null}
 
           <button
             className="primary-button"
-            disabled={isBusy || isCheckingServerOrigin || requiresServerOrigin}
+            disabled={isBusy || isCheckingServerOrigin || (!serverOrigin && !hasServerOriginDraft)}
             type="submit"
           >
             {isBusy ? "Please wait..." : mode === "signup" ? "Create account" : "Sign in"}
@@ -142,56 +224,7 @@ export default function AuthScreen({
           {mode === "signin" ? "Need an account? Sign up" : "Already have an account? Sign in"}
         </button>
 
-        <section className="server-panel">
-          <p className="eyebrow">Backend URL</p>
-          <p className="subtle-copy">
-            If this site did not detect a working backend automatically, point the app to the backend
-            that is actually running.
-          </p>
-
-          {requiresServerOrigin && !isCheckingServerOrigin ? (
-            <p className="server-warning">
-              No same-origin backend was detected for this deployment yet. Enter a backend URL, or
-              try detecting a same-origin `/api` backend again.
-            </p>
-          ) : null}
-
-          <label className="field">
-            <span>Server</span>
-            <input
-              name="serverOrigin"
-              onChange={(event) => {
-                setServerOriginDraft(event.target.value);
-                setServerOriginMessage("");
-              }}
-              placeholder="http://127.0.0.1:3001"
-              type="url"
-              value={serverOriginDraft}
-            />
-          </label>
-
-          <div className="server-actions">
-            <button className="secondary-button" disabled={isCheckingServerOrigin} onClick={handleSaveServerOrigin} type="button">
-              Save backend
-            </button>
-            <button
-              className="secondary-button"
-              disabled={isCheckingServerOrigin}
-              onClick={onDetectServerOrigin}
-              type="button"
-            >
-              {isCheckingServerOrigin ? "Checking..." : "Detect backend"}
-            </button>
-            <button className="icon-button" disabled={isCheckingServerOrigin} onClick={handleUseLocalServer} type="button">
-              Use local backend
-            </button>
-          </div>
-
-          <p className="server-copy">
-            Current backend: {serverOrigin || "Not configured yet"}
-          </p>
-          {serverOriginMessage ? <p className="server-copy">{serverOriginMessage}</p> : null}
-        </section>
+        {!shouldShowInlineServerSetup ? renderServerPanel(false) : null}
       </section>
 
       <aside className="auth-preview">

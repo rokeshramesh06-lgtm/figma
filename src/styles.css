@@ -159,6 +159,11 @@ button {
   padding: 1rem;
 }
 
+.inline-server-panel {
+  border: 1px solid rgba(18, 140, 126, 0.12);
+  margin-top: 0.25rem;
+}
+
 .server-warning {
   background: rgba(227, 116, 0, 0.12);
   border-radius: 16px;
