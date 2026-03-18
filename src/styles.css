@@ -159,6 +159,14 @@ button {
   padding: 1rem;
 }
 
+.server-warning {
+  background: rgba(227, 116, 0, 0.12);
+  border-radius: 16px;
+  color: #a35500;
+  margin: 0;
+  padding: 0.85rem 1rem;
+}
+
 .server-actions {
   display: flex;
   gap: 0.75rem;

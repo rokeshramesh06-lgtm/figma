@@ -7,11 +7,14 @@ const initialForm = {
 };
 
 export default function AuthScreen({
+  defaultServerOrigin,
   mode,
   onModeChange,
   onSubmit,
   isBusy,
+  isHostedOnVercel,
   error,
+  requiresServerOrigin,
   serverOrigin,
   onSaveServerOrigin,
 }) {
@@ -48,7 +51,7 @@ export default function AuthScreen({
   }
 
   function handleUseLocalServer() {
-    const savedServerOrigin = onSaveServerOrigin("");
+    const savedServerOrigin = onSaveServerOrigin(defaultServerOrigin);
     setServerOriginDraft(savedServerOrigin);
     setServerOriginMessage(`Backend reset to ${savedServerOrigin}`);
   }
@@ -111,7 +114,13 @@ export default function AuthScreen({
 
           {error ? <p className="form-error">{error}</p> : null}
 
-          <button className="primary-button" disabled={isBusy} type="submit">
+          {requiresServerOrigin ? (
+            <p className="form-error">
+              Set a backend URL before signing in or signing up.
+            </p>
+          ) : null}
+
+          <button className="primary-button" disabled={isBusy || requiresServerOrigin} type="submit">
             {isBusy ? "Please wait..." : mode === "signup" ? "Create account" : "Sign in"}
           </button>
         </form>
@@ -129,6 +138,13 @@ export default function AuthScreen({
           <p className="subtle-copy">
             If sign up hits the wrong server, point the app to the backend that is actually running.
           </p>
+
+          {isHostedOnVercel ? (
+            <p className="server-warning">
+              This frontend is running on Vercel. For this project, the backend is not automatically
+              available on the same URL, so you need to enter a separate backend origin.
+            </p>
+          ) : null}
 
           <label className="field">
             <span>Server</span>
@@ -149,11 +165,13 @@ export default function AuthScreen({
               Save backend
             </button>
             <button className="icon-button" onClick={handleUseLocalServer} type="button">
-              Use local default
+              Use local backend
             </button>
           </div>
 
-          <p className="server-copy">Current backend: {serverOrigin}</p>
+          <p className="server-copy">
+            Current backend: {serverOrigin || "Not configured yet"}
+          </p>
           {serverOriginMessage ? <p className="server-copy">{serverOriginMessage}</p> : null}
         </section>
       </section>

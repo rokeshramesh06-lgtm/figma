@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import { apiRequest } from "./api.js";
-import { getServerOrigin, setStoredServerOrigin } from "./config.js";
+import {
+  fallbackLocalServerOrigin,
+  getServerOrigin,
+  isHostedVercelFrontend,
+  setStoredServerOrigin,
+} from "./config.js";
 import AuthScreen from "./components/AuthScreen.jsx";
 import CallPanel from "./components/CallPanel.jsx";
 import ConversationPane from "./components/ConversationPane.jsx";
@@ -107,6 +112,7 @@ export default function App() {
   const remoteVideoRef = useRef(null);
 
   const onlineUserSet = useMemo(() => new Set(onlineUserIds), [onlineUserIds]);
+  const hostedOnVercel = isHostedVercelFrontend();
   const activeConversation = useMemo(
     () => conversations.find((conversation) => conversation.id === activeConversationId) || null,
     [activeConversationId, conversations],
@@ -353,7 +359,7 @@ export default function App() {
   }
 
   useEffect(() => {
-    if (!token) {
+    if (!token || !serverOrigin) {
       return undefined;
     }
 
@@ -400,10 +406,10 @@ export default function App() {
     return () => {
       ignore = true;
     };
-  }, [token]);
+  }, [serverOrigin, token]);
 
   useEffect(() => {
-    if (!token) {
+    if (!token || !serverOrigin) {
       return undefined;
     }
 
@@ -522,7 +528,7 @@ export default function App() {
     : false;
 
   useEffect(() => {
-    if (!token || !activeConversationId || hasMessagesLoaded) {
+    if (!token || !serverOrigin || !activeConversationId || hasMessagesLoaded) {
       return undefined;
     }
 
@@ -554,7 +560,7 @@ export default function App() {
     return () => {
       ignore = true;
     };
-  }, [activeConversationId, hasMessagesLoaded, token]);
+  }, [activeConversationId, hasMessagesLoaded, serverOrigin, token]);
 
   async function handleAuthSubmit(form) {
     setIsAuthBusy(true);
@@ -737,15 +743,18 @@ export default function App() {
     setCallState((current) => ({ ...current, videoEnabled: videoTrack.enabled }));
   }
 
-  if (!session?.token || !session.user) {
+  if (!session?.token || !session.user || !serverOrigin) {
     return (
       <AuthScreen
+        defaultServerOrigin={fallbackLocalServerOrigin}
         error={authError}
+        isHostedOnVercel={hostedOnVercel}
         isBusy={isAuthBusy}
         mode={authMode}
         onModeChange={setAuthMode}
         onSaveServerOrigin={handleSaveServerOrigin}
         onSubmit={handleAuthSubmit}
+        requiresServerOrigin={!serverOrigin}
         serverOrigin={serverOrigin}
       />
     );

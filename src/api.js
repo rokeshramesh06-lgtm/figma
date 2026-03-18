@@ -5,6 +5,10 @@ export async function apiRequest(path, options = {}) {
   let response;
   const requestUrl = buildServerUrl(path);
 
+  if (!requestUrl) {
+    throw new Error("Set the backend URL on the sign-in screen before making requests.");
+  }
+
   try {
     response = await fetch(requestUrl, {
       method,

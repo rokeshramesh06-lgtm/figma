@@ -26,6 +26,13 @@ GitHub Pages can only host the frontend files. Sign up, sign in, chat persistenc
 - If you are using GitHub Pages, this repo now includes a Pages workflow that deploys the built `dist` bundle from `main`.
 - The sign-in screen also lets you change the backend URL at runtime if your API is hosted somewhere else.
 
+## Vercel note
+
+Deploying only the Vite frontend to Vercel will not automatically make the Express + Socket.IO + SQLite backend available at the same origin.
+
+- The app now stops guessing `https://your-frontend.vercel.app/api/...` and asks for a real backend URL instead.
+- For a working hosted setup, deploy the backend on a separate Node host and enter that backend origin on the sign-in screen.
+
 ## Test it locally
 
 1. Open the app in two browser windows.
