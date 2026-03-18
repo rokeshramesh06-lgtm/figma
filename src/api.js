@@ -3,9 +3,10 @@ import { buildServerUrl } from "./config.js";
 export async function apiRequest(path, options = {}) {
   const { token, method = "GET", body, headers = {} } = options;
   let response;
+  const requestUrl = buildServerUrl(path);
 
   try {
-    response = await fetch(buildServerUrl(path), {
+    response = await fetch(requestUrl, {
       method,
       headers: {
         ...(body ? { "Content-Type": "application/json" } : {}),
@@ -16,7 +17,7 @@ export async function apiRequest(path, options = {}) {
     });
   } catch {
     throw new Error(
-      "Cannot reach the chat server. Start the backend on http://127.0.0.1:3001 or set VITE_SERVER_ORIGIN to your deployed API.",
+      `Cannot reach the chat server at ${requestUrl}. Start the backend there, or update the backend URL on the sign-in screen.`,
     );
   }
 
@@ -25,6 +26,12 @@ export async function apiRequest(path, options = {}) {
     .catch(() => ({ error: "Unexpected response from the server." }));
 
   if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error(
+        `The server at ${requestUrl} returned 404. Check the backend URL on the sign-in screen, or make sure the backend is running there.`,
+      );
+    }
+
     throw new Error(payload.error || "Request failed.");
   }
 

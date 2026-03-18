@@ -23,6 +23,8 @@ GitHub Pages can only host the frontend files. Sign up, sign in, chat persistenc
 
 - For local use, run `npm run dev` so the frontend talks to `http://127.0.0.1:3001`.
 - For deployed use, host the backend on a Node service and set `VITE_SERVER_ORIGIN` to that backend URL before building.
+- If you are using GitHub Pages, this repo now includes a Pages workflow that deploys the built `dist` bundle from `main`.
+- The sign-in screen also lets you change the backend URL at runtime if your API is hosted somewhere else.
 
 ## Test it locally
 

@@ -6,8 +6,18 @@ const initialForm = {
   password: "",
 };
 
-export default function AuthScreen({ mode, onModeChange, onSubmit, isBusy, error }) {
+export default function AuthScreen({
+  mode,
+  onModeChange,
+  onSubmit,
+  isBusy,
+  error,
+  serverOrigin,
+  onSaveServerOrigin,
+}) {
   const [form, setForm] = useState(initialForm);
+  const [serverOriginDraft, setServerOriginDraft] = useState(serverOrigin);
+  const [serverOriginMessage, setServerOriginMessage] = useState("");
 
   useEffect(() => {
     setForm((current) => ({
@@ -17,6 +27,10 @@ export default function AuthScreen({ mode, onModeChange, onSubmit, isBusy, error
     }));
   }, [mode]);
 
+  useEffect(() => {
+    setServerOriginDraft(serverOrigin);
+  }, [serverOrigin]);
+
   function updateField(event) {
     const { name, value } = event.target;
     setForm((current) => ({ ...current, [name]: value }));
@@ -25,6 +39,18 @@ export default function AuthScreen({ mode, onModeChange, onSubmit, isBusy, error
   async function handleSubmit(event) {
     event.preventDefault();
     await onSubmit(form);
+  }
+
+  function handleSaveServerOrigin() {
+    const savedServerOrigin = onSaveServerOrigin(serverOriginDraft);
+    setServerOriginDraft(savedServerOrigin);
+    setServerOriginMessage(`Backend set to ${savedServerOrigin}`);
+  }
+
+  function handleUseLocalServer() {
+    const savedServerOrigin = onSaveServerOrigin("");
+    setServerOriginDraft(savedServerOrigin);
+    setServerOriginMessage(`Backend reset to ${savedServerOrigin}`);
   }
 
   return (
@@ -97,6 +123,39 @@ export default function AuthScreen({ mode, onModeChange, onSubmit, isBusy, error
         >
           {mode === "signin" ? "Need an account? Sign up" : "Already have an account? Sign in"}
         </button>
+
+        <section className="server-panel">
+          <p className="eyebrow">Backend URL</p>
+          <p className="subtle-copy">
+            If sign up hits the wrong server, point the app to the backend that is actually running.
+          </p>
+
+          <label className="field">
+            <span>Server</span>
+            <input
+              name="serverOrigin"
+              onChange={(event) => {
+                setServerOriginDraft(event.target.value);
+                setServerOriginMessage("");
+              }}
+              placeholder="http://127.0.0.1:3001"
+              type="url"
+              value={serverOriginDraft}
+            />
+          </label>
+
+          <div className="server-actions">
+            <button className="secondary-button" onClick={handleSaveServerOrigin} type="button">
+              Save backend
+            </button>
+            <button className="icon-button" onClick={handleUseLocalServer} type="button">
+              Use local default
+            </button>
+          </div>
+
+          <p className="server-copy">Current backend: {serverOrigin}</p>
+          {serverOriginMessage ? <p className="server-copy">{serverOriginMessage}</p> : null}
+        </section>
       </section>
 
       <aside className="auth-preview">
@@ -114,4 +173,3 @@ export default function AuthScreen({ mode, onModeChange, onSubmit, isBusy, error
     </main>
   );
 }
-

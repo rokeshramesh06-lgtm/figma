@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import { apiRequest } from "./api.js";
-import { serverOrigin } from "./config.js";
+import { getServerOrigin, setStoredServerOrigin } from "./config.js";
 import AuthScreen from "./components/AuthScreen.jsx";
 import CallPanel from "./components/CallPanel.jsx";
 import ConversationPane from "./components/ConversationPane.jsx";
@@ -75,6 +75,7 @@ function stopStream(stream) {
 
 export default function App() {
   const [session, setSession] = useState(() => getStoredSession());
+  const [serverOrigin, setServerOrigin] = useState(() => getServerOrigin());
   const [authMode, setAuthMode] = useState("signup");
   const [authError, setAuthError] = useState("");
   const [isAuthBusy, setIsAuthBusy] = useState(false);
@@ -222,6 +223,14 @@ export default function App() {
     setSession(null);
     setAuthError("");
     resetRealtimeState();
+  }
+
+  function handleSaveServerOrigin(nextServerOrigin) {
+    setStoredServerOrigin(nextServerOrigin);
+    const resolvedServerOrigin = getServerOrigin();
+    setServerOrigin(resolvedServerOrigin);
+    setAuthError("");
+    return resolvedServerOrigin;
   }
 
   async function emitWithAck(eventName, payload) {
@@ -506,7 +515,7 @@ export default function App() {
       }
       setSocketReady(false);
     };
-  }, [token]);
+  }, [serverOrigin, token]);
 
   const hasMessagesLoaded = activeConversationId
     ? Object.prototype.hasOwnProperty.call(messagesByConversation, activeConversationId)
@@ -735,7 +744,9 @@ export default function App() {
         isBusy={isAuthBusy}
         mode={authMode}
         onModeChange={setAuthMode}
+        onSaveServerOrigin={handleSaveServerOrigin}
         onSubmit={handleAuthSubmit}
+        serverOrigin={serverOrigin}
       />
     );
   }
