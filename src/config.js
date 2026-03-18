@@ -1,3 +1,4 @@
+const fallbackLocalServerOrigin = "http://127.0.0.1:3001";
 const configuredServerOrigin = import.meta.env?.VITE_SERVER_ORIGIN?.replace(/\/$/, "");
 
 function inferServerOrigin() {
@@ -6,12 +7,19 @@ function inferServerOrigin() {
   }
 
   if (typeof window === "undefined") {
-    return "http://localhost:3001";
+    return fallbackLocalServerOrigin;
   }
 
   const { origin, protocol, hostname, port } = window.location;
+  const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1";
+  const isFileProtocol = protocol === "file:";
+  const isGitHubPages = hostname.endsWith("github.io");
 
-  if (port && port !== "3001") {
+  if (isFileProtocol || isGitHubPages) {
+    return fallbackLocalServerOrigin;
+  }
+
+  if (isLocalhost && port !== "3001") {
     return `${protocol}//${hostname}:3001`;
   }
 

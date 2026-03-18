@@ -17,6 +17,13 @@ npm run dev
 
 The app runs at `http://localhost:5173` and the API/socket server runs at `http://localhost:3001`.
 
+## Important hosting note
+
+GitHub Pages can only host the frontend files. Sign up, sign in, chat persistence, and calling still require the Node + SQLite backend to be running separately.
+
+- For local use, run `npm run dev` so the frontend talks to `http://127.0.0.1:3001`.
+- For deployed use, host the backend on a Node service and set `VITE_SERVER_ORIGIN` to that backend URL before building.
+
 ## Test it locally
 
 1. Open the app in two browser windows.
