@@ -21,7 +21,23 @@ function getStoredServerOrigin() {
     return "";
   }
 
-  return normalizeServerOrigin(window.localStorage.getItem(serverOriginStorageKey));
+  const normalizedValue = normalizeServerOrigin(window.localStorage.getItem(serverOriginStorageKey));
+  if (!normalizedValue) {
+    return "";
+  }
+
+  const { origin, protocol, hostname } = window.location;
+  const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1";
+  const isFileProtocol = protocol === "file:";
+
+  // Older builds may have saved the frontend URL itself as the backend on hosted pages.
+  // Drop that stale value so the runtime health probe can re-check same-origin safely.
+  if (!isLocalhost && !isFileProtocol && normalizedValue === origin) {
+    window.localStorage.removeItem(serverOriginStorageKey);
+    return "";
+  }
+
+  return normalizedValue;
 }
 
 function getServerOriginFromQuery() {
