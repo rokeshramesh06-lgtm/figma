@@ -1,0 +1,7 @@
+node_modules
+dist
+server/chat.sqlite
+server/chat.sqlite-shm
+server/chat.sqlite-wal
+.DS_Store
+*.log
