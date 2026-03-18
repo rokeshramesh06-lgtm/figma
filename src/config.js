@@ -47,14 +47,6 @@ export function setStoredServerOrigin(value) {
   window.localStorage.removeItem(serverOriginStorageKey);
 }
 
-export function isHostedVercelFrontend() {
-  if (typeof window === "undefined") {
-    return false;
-  }
-
-  return window.location.hostname.endsWith(".vercel.app");
-}
-
 function inferServerOrigin() {
   const queryServerOrigin = getServerOriginFromQuery();
   if (queryServerOrigin) {
@@ -79,22 +71,21 @@ function inferServerOrigin() {
   const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1";
   const isFileProtocol = protocol === "file:";
   const isGitHubPages = hostname.endsWith("github.io");
-  const isVercelFrontend = hostname.endsWith(".vercel.app");
 
   if (isFileProtocol || isGitHubPages) {
     return fallbackLocalServerOrigin;
-  }
-
-  // This project's backend is not automatically deployed with the Vite frontend on Vercel.
-  if (isVercelFrontend) {
-    return "";
   }
 
   if (isLocalhost && port !== "3001") {
     return `${protocol}//${hostname}:3001`;
   }
 
-  return origin;
+  if (isLocalhost) {
+    return origin;
+  }
+
+  // For hosted frontends, wait for an explicit backend URL or a runtime health probe.
+  return "";
 }
 
 export function getServerOrigin() {

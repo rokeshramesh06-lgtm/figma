@@ -4,7 +4,6 @@ import { apiRequest } from "./api.js";
 import {
   fallbackLocalServerOrigin,
   getServerOrigin,
-  isHostedVercelFrontend,
   setStoredServerOrigin,
 } from "./config.js";
 import AuthScreen from "./components/AuthScreen.jsx";
@@ -81,6 +80,7 @@ function stopStream(stream) {
 export default function App() {
   const [session, setSession] = useState(() => getStoredSession());
   const [serverOrigin, setServerOrigin] = useState(() => getServerOrigin());
+  const [isCheckingServerOrigin, setIsCheckingServerOrigin] = useState(false);
   const [authMode, setAuthMode] = useState("signup");
   const [authError, setAuthError] = useState("");
   const [isAuthBusy, setIsAuthBusy] = useState(false);
@@ -112,7 +112,6 @@ export default function App() {
   const remoteVideoRef = useRef(null);
 
   const onlineUserSet = useMemo(() => new Set(onlineUserIds), [onlineUserIds]);
-  const hostedOnVercel = isHostedVercelFrontend();
   const activeConversation = useMemo(
     () => conversations.find((conversation) => conversation.id === activeConversationId) || null,
     [activeConversationId, conversations],
@@ -238,6 +237,77 @@ export default function App() {
     setAuthError("");
     return resolvedServerOrigin;
   }
+
+  async function handleDetectServerOrigin() {
+    if (typeof window === "undefined") {
+      return "";
+    }
+
+    const origin = window.location.origin;
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 2500);
+    setIsCheckingServerOrigin(true);
+
+    try {
+      const response = await fetch(`${origin}/api/health`, {
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error("Backend health check failed.");
+      }
+
+      setStoredServerOrigin(origin);
+      setServerOrigin(origin);
+      setAuthError("");
+      return origin;
+    } catch {
+      setServerOrigin("");
+      setAuthError("No same-origin backend responded on this deployment. Enter a backend URL below.");
+      return "";
+    } finally {
+      window.clearTimeout(timeoutId);
+      setIsCheckingServerOrigin(false);
+    }
+  }
+
+  useEffect(() => {
+    if (serverOrigin || typeof window === "undefined") {
+      return;
+    }
+
+    let ignore = false;
+    setIsCheckingServerOrigin(true);
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 2500);
+
+    fetch(`${window.location.origin}/api/health`, {
+      signal: controller.signal,
+    })
+      .then((response) => {
+        if (!response.ok || ignore) {
+          return;
+        }
+
+        setStoredServerOrigin(window.location.origin);
+        setServerOrigin(window.location.origin);
+        setAuthError("");
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!ignore) {
+          setIsCheckingServerOrigin(false);
+        }
+        window.clearTimeout(timeoutId);
+      });
+
+    return () => {
+      ignore = true;
+      controller.abort();
+      window.clearTimeout(timeoutId);
+    };
+  }, [serverOrigin]);
 
   async function emitWithAck(eventName, payload) {
     return new Promise((resolve, reject) => {
@@ -748,9 +818,10 @@ export default function App() {
       <AuthScreen
         defaultServerOrigin={fallbackLocalServerOrigin}
         error={authError}
-        isHostedOnVercel={hostedOnVercel}
         isBusy={isAuthBusy}
+        isCheckingServerOrigin={isCheckingServerOrigin}
         mode={authMode}
+        onDetectServerOrigin={handleDetectServerOrigin}
         onModeChange={setAuthMode}
         onSaveServerOrigin={handleSaveServerOrigin}
         onSubmit={handleAuthSubmit}

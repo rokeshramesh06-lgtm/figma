@@ -12,10 +12,11 @@ export default function AuthScreen({
   onModeChange,
   onSubmit,
   isBusy,
-  isHostedOnVercel,
+  isCheckingServerOrigin,
   error,
   requiresServerOrigin,
   serverOrigin,
+  onDetectServerOrigin,
   onSaveServerOrigin,
 }) {
   const [form, setForm] = useState(initialForm);
@@ -114,13 +115,21 @@ export default function AuthScreen({
 
           {error ? <p className="form-error">{error}</p> : null}
 
-          {requiresServerOrigin ? (
+          {isCheckingServerOrigin ? (
+            <p className="server-copy">Checking whether this deployment already exposes the backend...</p>
+          ) : null}
+
+          {!isCheckingServerOrigin && requiresServerOrigin ? (
             <p className="form-error">
               Set a backend URL before signing in or signing up.
             </p>
           ) : null}
 
-          <button className="primary-button" disabled={isBusy || requiresServerOrigin} type="submit">
+          <button
+            className="primary-button"
+            disabled={isBusy || isCheckingServerOrigin || requiresServerOrigin}
+            type="submit"
+          >
             {isBusy ? "Please wait..." : mode === "signup" ? "Create account" : "Sign in"}
           </button>
         </form>
@@ -136,13 +145,14 @@ export default function AuthScreen({
         <section className="server-panel">
           <p className="eyebrow">Backend URL</p>
           <p className="subtle-copy">
-            If sign up hits the wrong server, point the app to the backend that is actually running.
+            If this site did not detect a working backend automatically, point the app to the backend
+            that is actually running.
           </p>
 
-          {isHostedOnVercel ? (
+          {requiresServerOrigin && !isCheckingServerOrigin ? (
             <p className="server-warning">
-              This frontend is running on Vercel. For this project, the backend is not automatically
-              available on the same URL, so you need to enter a separate backend origin.
+              No same-origin backend was detected for this deployment yet. Enter a backend URL, or
+              try detecting a same-origin `/api` backend again.
             </p>
           ) : null}
 
@@ -161,10 +171,18 @@ export default function AuthScreen({
           </label>
 
           <div className="server-actions">
-            <button className="secondary-button" onClick={handleSaveServerOrigin} type="button">
+            <button className="secondary-button" disabled={isCheckingServerOrigin} onClick={handleSaveServerOrigin} type="button">
               Save backend
             </button>
-            <button className="icon-button" onClick={handleUseLocalServer} type="button">
+            <button
+              className="secondary-button"
+              disabled={isCheckingServerOrigin}
+              onClick={onDetectServerOrigin}
+              type="button"
+            >
+              {isCheckingServerOrigin ? "Checking..." : "Detect backend"}
+            </button>
+            <button className="icon-button" disabled={isCheckingServerOrigin} onClick={handleUseLocalServer} type="button">
               Use local backend
             </button>
           </div>

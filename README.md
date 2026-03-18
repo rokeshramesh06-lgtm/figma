@@ -28,10 +28,11 @@ GitHub Pages can only host the frontend files. Sign up, sign in, chat persistenc
 
 ## Vercel note
 
-Deploying only the Vite frontend to Vercel will not automatically make the Express + Socket.IO + SQLite backend available at the same origin.
+Hosted frontends now probe `GET /api/health` on their own origin before asking for a separate backend URL.
 
-- The app now stops guessing `https://your-frontend.vercel.app/api/...` and asks for a real backend URL instead.
-- For a working hosted setup, deploy the backend on a separate Node host and enter that backend origin on the sign-in screen.
+- If your deployment exposes the API on the same origin, the app will pick it up automatically.
+- If that health check fails, the sign-in screen lets you enter a separate backend origin or retry detection.
+- Deploying only the Vite frontend to Vercel still does not make this Express + Socket.IO + SQLite backend available automatically, so in that setup you still need a separately hosted backend.
 
 ## Test it locally
 
