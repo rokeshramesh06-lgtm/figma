@@ -32,29 +32,21 @@ const distDir = path.join(workspaceRoot, "dist");
 
 const PORT = Number(process.env.PORT || 3001);
 const JWT_SECRET = process.env.JWT_SECRET || "replace-this-in-production";
-const allowedOrigins = ["http://localhost:5173", "http://127.0.0.1:5173"];
+
+const corsOptions = {
+  origin(_origin, callback) {
+    callback(null, true);
+  },
+  methods: ["GET", "POST"],
+};
 
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
-  cors: {
-    origin: allowedOrigins,
-    methods: ["GET", "POST"],
-  },
+  cors: corsOptions,
 });
 
-app.use(
-  cors({
-    origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-        return;
-      }
-
-      callback(new Error("Origin not allowed"));
-    },
-  }),
-);
+app.use(cors(corsOptions));
 app.use(express.json());
 
 const onlineSockets = new Map();

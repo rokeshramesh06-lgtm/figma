@@ -1,7 +1,9 @@
+import { buildServerUrl } from "./config.js";
+
 export async function apiRequest(path, options = {}) {
   const { token, method = "GET", body, headers = {} } = options;
 
-  const response = await fetch(path, {
+  const response = await fetch(buildServerUrl(path), {
     method,
     headers: {
       ...(body ? { "Content-Type": "application/json" } : {}),
@@ -21,4 +23,3 @@ export async function apiRequest(path, options = {}) {
 
   return payload;
 }
-

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import { apiRequest } from "./api.js";
+import { serverOrigin } from "./config.js";
 import AuthScreen from "./components/AuthScreen.jsx";
 import CallPanel from "./components/CallPanel.jsx";
 import ConversationPane from "./components/ConversationPane.jsx";
@@ -397,7 +398,7 @@ export default function App() {
       return undefined;
     }
 
-    const socket = io("/", {
+    const socket = io(serverOrigin, {
       auth: { token },
       transports: ["websocket", "polling"],
     });
