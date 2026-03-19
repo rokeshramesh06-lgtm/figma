@@ -1,5 +1,4 @@
 export const fallbackLocalServerOrigin = "http://127.0.0.1:3001";
-export const serverOriginStorageKey = "chat-free-server-origin";
 const configuredServerOrigin = import.meta.env?.VITE_SERVER_ORIGIN?.replace(/\/$/, "");
 
 export function normalizeServerOrigin(value) {
@@ -16,67 +15,10 @@ export function normalizeServerOrigin(value) {
   }
 }
 
-function getStoredServerOrigin() {
-  if (typeof window === "undefined") {
-    return "";
-  }
-
-  const normalizedValue = normalizeServerOrigin(window.localStorage.getItem(serverOriginStorageKey));
-  if (!normalizedValue) {
-    return "";
-  }
-
-  const { origin, protocol, hostname } = window.location;
-  const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1";
-  const isFileProtocol = protocol === "file:";
-
-  // Older builds may have saved the frontend URL itself as the backend on hosted pages.
-  // Drop that stale value so the runtime health probe can re-check same-origin safely.
-  if (!isLocalhost && !isFileProtocol && normalizedValue === origin) {
-    window.localStorage.removeItem(serverOriginStorageKey);
-    return "";
-  }
-
-  return normalizedValue;
-}
-
-function getServerOriginFromQuery() {
-  if (typeof window === "undefined") {
-    return "";
-  }
-
-  const params = new URLSearchParams(window.location.search);
-  return normalizeServerOrigin(params.get("server"));
-}
-
-export function setStoredServerOrigin(value) {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  const normalizedValue = normalizeServerOrigin(value);
-  if (normalizedValue) {
-    window.localStorage.setItem(serverOriginStorageKey, normalizedValue);
-    return;
-  }
-
-  window.localStorage.removeItem(serverOriginStorageKey);
-}
-
 function inferServerOrigin() {
-  const queryServerOrigin = getServerOriginFromQuery();
-  if (queryServerOrigin) {
-    setStoredServerOrigin(queryServerOrigin);
-    return queryServerOrigin;
-  }
-
-  const storedServerOrigin = getStoredServerOrigin();
-  if (storedServerOrigin) {
-    return storedServerOrigin;
-  }
-
-  if (configuredServerOrigin) {
-    return configuredServerOrigin;
+  const normalizedConfiguredOrigin = normalizeServerOrigin(configuredServerOrigin);
+  if (normalizedConfiguredOrigin) {
+    return normalizedConfiguredOrigin;
   }
 
   if (typeof window === "undefined") {
@@ -100,7 +42,7 @@ function inferServerOrigin() {
     return origin;
   }
 
-  // For hosted frontends, wait for an explicit backend URL or a runtime health probe.
+  // Hosted frontends either expose /api on the same origin or use one shared backend from env.
   return "";
 }
 

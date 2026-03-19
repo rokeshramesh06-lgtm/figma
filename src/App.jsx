@@ -1,11 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import { apiRequest } from "./api.js";
-import {
-  fallbackLocalServerOrigin,
-  getServerOrigin,
-  setStoredServerOrigin,
-} from "./config.js";
+import { getServerOrigin } from "./config.js";
 import AuthScreen from "./components/AuthScreen.jsx";
 import CallPanel from "./components/CallPanel.jsx";
 import ConversationPane from "./components/ConversationPane.jsx";
@@ -230,14 +226,6 @@ export default function App() {
     resetRealtimeState();
   }
 
-  function handleSaveServerOrigin(nextServerOrigin) {
-    setStoredServerOrigin(nextServerOrigin);
-    const resolvedServerOrigin = getServerOrigin();
-    setServerOrigin(resolvedServerOrigin);
-    setAuthError("");
-    return resolvedServerOrigin;
-  }
-
   async function handleDetectServerOrigin() {
     if (typeof window === "undefined") {
       return "";
@@ -257,13 +245,14 @@ export default function App() {
         throw new Error("Backend health check failed.");
       }
 
-      setStoredServerOrigin(origin);
       setServerOrigin(origin);
       setAuthError("");
       return origin;
     } catch {
       setServerOrigin("");
-      setAuthError("No same-origin backend responded on this deployment. Enter a backend URL below.");
+      setAuthError(
+        "This deployment is not connected to its shared backend. Set VITE_SERVER_ORIGIN in Vercel, or deploy /api on the same origin.",
+      );
       return "";
     } finally {
       window.clearTimeout(timeoutId);
@@ -281,6 +270,7 @@ export default function App() {
 
     const controller = new AbortController();
     const timeoutId = window.setTimeout(() => controller.abort(), 2500);
+    let foundSharedBackend = false;
 
     fetch(`${window.location.origin}/api/health`, {
       signal: controller.signal,
@@ -290,12 +280,17 @@ export default function App() {
           return;
         }
 
-        setStoredServerOrigin(window.location.origin);
+        foundSharedBackend = true;
         setServerOrigin(window.location.origin);
         setAuthError("");
       })
       .catch(() => {})
       .finally(() => {
+        if (!ignore && !foundSharedBackend) {
+          setAuthError(
+            "This deployment is not connected to its shared backend. Set VITE_SERVER_ORIGIN in Vercel, or deploy /api on the same origin.",
+          );
+        }
         if (!ignore) {
           setIsCheckingServerOrigin(false);
         }
@@ -816,17 +811,14 @@ export default function App() {
   if (!session?.token || !session.user || !serverOrigin) {
     return (
       <AuthScreen
-        defaultServerOrigin={fallbackLocalServerOrigin}
         error={authError}
         isBusy={isAuthBusy}
         isCheckingServerOrigin={isCheckingServerOrigin}
         mode={authMode}
         onDetectServerOrigin={handleDetectServerOrigin}
         onModeChange={setAuthMode}
-        onSaveServerOrigin={handleSaveServerOrigin}
         onSubmit={handleAuthSubmit}
         requiresServerOrigin={!serverOrigin}
-        serverOrigin={serverOrigin}
       />
     );
   }

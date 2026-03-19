@@ -24,14 +24,14 @@ GitHub Pages can only host the frontend files. Sign up, sign in, chat persistenc
 - For local use, run `npm run dev` so the frontend talks to `http://127.0.0.1:3001`.
 - For deployed use, host the backend on a Node service and set `VITE_SERVER_ORIGIN` to that backend URL before building.
 - If you are using GitHub Pages, this repo now includes a Pages workflow that deploys the built `dist` bundle from `main`.
-- The sign-in screen also lets you change the backend URL at runtime if your API is hosted somewhere else.
+- End users no longer enter backend URLs manually. The deployment should provide one shared backend for everyone.
 
 ## Vercel note
 
-Hosted frontends now probe `GET /api/health` on their own origin before asking for a separate backend URL.
+Hosted frontends now probe `GET /api/health` on their own origin before falling back to one shared backend from `VITE_SERVER_ORIGIN`.
 
 - If your deployment exposes the API on the same origin, the app will pick it up automatically.
-- If that health check fails, the sign-in screen lets you enter a separate backend origin or retry detection.
+- If that health check fails, configure `VITE_SERVER_ORIGIN` in Vercel so the whole site uses one shared backend automatically.
 - Deploying only the Vite frontend to Vercel still does not make this Express + Socket.IO + SQLite backend available automatically, so in that setup you still need a separately hosted backend.
 
 ## Test it locally

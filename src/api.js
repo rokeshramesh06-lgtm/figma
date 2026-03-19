@@ -6,7 +6,7 @@ export async function apiRequest(path, options = {}) {
   const requestUrl = buildServerUrl(path);
 
   if (!requestUrl) {
-    throw new Error("Set the backend URL on the sign-in screen before making requests.");
+    throw new Error("This deployment is not connected to its shared chat backend yet.");
   }
 
   try {
@@ -21,7 +21,7 @@ export async function apiRequest(path, options = {}) {
     });
   } catch {
     throw new Error(
-      `Cannot reach the chat server at ${requestUrl}. Start the backend there, or update the backend URL on the sign-in screen.`,
+      `Cannot reach the chat server at ${requestUrl}. Check the deployment's shared backend configuration.`,
     );
   }
 
@@ -32,7 +32,7 @@ export async function apiRequest(path, options = {}) {
   if (!response.ok) {
     if (response.status === 404) {
       throw new Error(
-        `The server at ${requestUrl} returned 404. Check the backend URL on the sign-in screen, or make sure the backend is running there.`,
+        `The configured chat backend at ${requestUrl} returned 404. Check the deployment's shared backend configuration.`,
       );
     }
 
