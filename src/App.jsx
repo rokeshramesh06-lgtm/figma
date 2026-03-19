@@ -251,7 +251,7 @@ export default function App() {
     } catch {
       setServerOrigin("");
       setAuthError(
-        "This deployment is not connected to its shared backend. Set VITE_SERVER_ORIGIN in Vercel, or deploy /api on the same origin.",
+        "This deployment is not connected to its shared backend. Set BACKEND_ORIGIN in Vercel so /api and /socket.io are proxied to the shared backend.",
       );
       return "";
     } finally {
@@ -288,7 +288,7 @@ export default function App() {
       .finally(() => {
         if (!ignore && !foundSharedBackend) {
           setAuthError(
-            "This deployment is not connected to its shared backend. Set VITE_SERVER_ORIGIN in Vercel, or deploy /api on the same origin.",
+            "This deployment is not connected to its shared backend. Set BACKEND_ORIGIN in Vercel so /api and /socket.io are proxied to the shared backend.",
           );
         }
         if (!ignore) {
