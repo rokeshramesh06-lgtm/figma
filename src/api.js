@@ -1,12 +1,19 @@
 import { buildServerUrl } from "./config.js";
 
+function createApiError(message, status, requestUrl) {
+  const error = new Error(message);
+  error.status = status;
+  error.requestUrl = requestUrl;
+  return error;
+}
+
 export async function apiRequest(path, options = {}) {
   const { token, method = "GET", body, headers = {} } = options;
   let response;
   const requestUrl = buildServerUrl(path);
 
   if (!requestUrl) {
-    throw new Error("This deployment is not connected to its shared chat backend yet.");
+    throw createApiError("This deployment is not connected to its shared chat backend yet.", 0, requestUrl);
   }
 
   try {
@@ -20,8 +27,10 @@ export async function apiRequest(path, options = {}) {
       body: body ? JSON.stringify(body) : undefined,
     });
   } catch {
-    throw new Error(
+    throw createApiError(
       `Cannot reach the chat server at ${requestUrl}. Check the deployment's shared backend configuration.`,
+      0,
+      requestUrl,
     );
   }
 
@@ -31,12 +40,14 @@ export async function apiRequest(path, options = {}) {
 
   if (!response.ok) {
     if (response.status === 404) {
-      throw new Error(
+      throw createApiError(
         `The configured chat backend at ${requestUrl} returned 404. Check the deployment's shared backend configuration.`,
+        response.status,
+        requestUrl,
       );
     }
 
-    throw new Error(payload.error || "Request failed.");
+    throw createApiError(payload.error || "Request failed.", response.status, requestUrl);
   }
 
   return payload;

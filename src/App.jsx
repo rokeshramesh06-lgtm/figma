@@ -240,6 +240,17 @@ export default function App() {
     resetRealtimeState();
   }
 
+  function handleUnauthorizedSession(error) {
+    if (error?.status !== 401) {
+      return false;
+    }
+
+    signOut();
+    setAuthMode("signin");
+    setAuthError(error.message || "Your session expired. Sign in again.");
+    return true;
+  }
+
   async function handleDetectServerOrigin() {
     if (typeof window === "undefined") {
       return "";
@@ -474,6 +485,9 @@ export default function App() {
         });
       } catch (error) {
         if (!ignore) {
+          if (handleUnauthorizedSession(error)) {
+            return;
+          }
           signOut();
           setAuthError(error.message);
         }
@@ -640,6 +654,9 @@ export default function App() {
       })
       .catch((error) => {
         if (!ignore) {
+          if (handleUnauthorizedSession(error)) {
+            return;
+          }
           setNotice(error.message);
         }
       })
@@ -693,6 +710,9 @@ export default function App() {
         }
       } catch (error) {
         if (!ignore) {
+          if (handleUnauthorizedSession(error)) {
+            return;
+          }
           setNotice(error.message);
         }
       }
@@ -745,6 +765,9 @@ export default function App() {
       setActiveConversationId(payload.conversation.id);
       return true;
     } catch (error) {
+      if (handleUnauthorizedSession(error)) {
+        return false;
+      }
       setNotice(error.message);
       return false;
     }
@@ -781,6 +804,9 @@ export default function App() {
       }
       setMessageDraft("");
     } catch (error) {
+      if (handleUnauthorizedSession(error)) {
+        return;
+      }
       setComposerError(error.message);
     }
   }
