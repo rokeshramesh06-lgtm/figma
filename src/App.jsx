@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import { apiRequest } from "./api.js";
-import { getServerOrigin } from "./config.js";
+import { getServerOrigin, setResolvedServerOrigin } from "./config.js";
 import AuthScreen from "./components/AuthScreen.jsx";
 import CallPanel from "./components/CallPanel.jsx";
 import ConversationPane from "./components/ConversationPane.jsx";
@@ -256,10 +256,12 @@ export default function App() {
         throw new Error("Backend health check failed.");
       }
 
+      setResolvedServerOrigin(origin);
       setServerOrigin(origin);
       setAuthError("");
       return origin;
     } catch {
+      setResolvedServerOrigin("");
       setServerOrigin("");
       setAuthError(
         "This deployment does not expose its built-in /api backend yet.",
@@ -292,12 +294,14 @@ export default function App() {
         }
 
         foundSharedBackend = true;
+        setResolvedServerOrigin(window.location.origin);
         setServerOrigin(window.location.origin);
         setAuthError("");
       })
       .catch(() => {})
       .finally(() => {
         if (!ignore && !foundSharedBackend) {
+          setResolvedServerOrigin("");
           setAuthError(
             "This deployment does not expose its built-in /api backend yet.",
           );
@@ -494,7 +498,7 @@ export default function App() {
   }, [usesHttpSync]);
 
   useEffect(() => {
-    if (!token || !serverOrigin) {
+    if (!token || !serverOrigin || usesHttpSync) {
       return undefined;
     }
 
@@ -606,7 +610,7 @@ export default function App() {
       }
       setSocketReady(false);
     };
-  }, [serverOrigin, token]);
+  }, [serverOrigin, token, usesHttpSync]);
 
   const hasMessagesLoaded = activeConversationId
     ? Object.prototype.hasOwnProperty.call(messagesByConversation, activeConversationId)
@@ -922,13 +926,13 @@ export default function App() {
           currentUser={session.user}
           onlineUserIds={onlineUserSet}
           onLogout={signOut}
-        onSearchChange={setSearchValue}
-        onSelectConversation={setActiveConversationId}
-        onStartConversation={handleStartConversation}
-        searchValue={searchValue}
-        connectionLabel={connectionLabel}
-        users={filteredUsers}
-      />
+          onSearchChange={setSearchValue}
+          onSelectConversation={setActiveConversationId}
+          onStartConversation={handleStartConversation}
+          searchValue={searchValue}
+          connectionLabel={connectionLabel}
+          users={filteredUsers}
+        />
 
         <ConversationPane
           composerError={composerError}

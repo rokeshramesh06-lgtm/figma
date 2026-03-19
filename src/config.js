@@ -1,4 +1,5 @@
 export const fallbackLocalServerOrigin = "http://127.0.0.1:3001";
+let resolvedServerOrigin = "";
 
 export function normalizeServerOrigin(value) {
   const normalizedValue = String(value || "").trim().replace(/\/$/, "");
@@ -14,7 +15,16 @@ export function normalizeServerOrigin(value) {
   }
 }
 
+export function setResolvedServerOrigin(value) {
+  resolvedServerOrigin = normalizeServerOrigin(value);
+  return resolvedServerOrigin;
+}
+
 function inferServerOrigin() {
+  if (resolvedServerOrigin) {
+    return resolvedServerOrigin;
+  }
+
   if (typeof window === "undefined") {
     return fallbackLocalServerOrigin;
   }
