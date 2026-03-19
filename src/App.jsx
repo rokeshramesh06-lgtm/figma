@@ -5,6 +5,7 @@ import { getServerOrigin, setResolvedServerOrigin } from "./config.js";
 import AuthScreen from "./components/AuthScreen.jsx";
 import CallPanel from "./components/CallPanel.jsx";
 import ConversationPane from "./components/ConversationPane.jsx";
+import NewChatModal from "./components/NewChatModal.jsx";
 import Sidebar from "./components/Sidebar.jsx";
 
 const STORAGE_KEY = "chat-free-session";
@@ -92,6 +93,7 @@ export default function App() {
   const [searchValue, setSearchValue] = useState("");
   const [onlineUserIds, setOnlineUserIds] = useState([]);
   const [notice, setNotice] = useState("");
+  const [isNewChatOpen, setIsNewChatOpen] = useState(false);
   const [incomingCall, setIncomingCall] = useState(null);
   const [callState, setCallState] = useState(emptyCallState);
 
@@ -189,6 +191,7 @@ export default function App() {
     setMessageDraft("");
     setComposerError("");
     setSearchValue("");
+    setIsNewChatOpen(false);
     setOnlineUserIds([]);
     setIncomingCall(null);
     setNotice("");
@@ -727,7 +730,7 @@ export default function App() {
 
   async function handleStartConversation(user) {
     if (!token) {
-      return;
+      return false;
     }
 
     try {
@@ -740,8 +743,17 @@ export default function App() {
 
       setConversations((current) => upsertConversation(current, payload.conversation));
       setActiveConversationId(payload.conversation.id);
+      return true;
     } catch (error) {
       setNotice(error.message);
+      return false;
+    }
+  }
+
+  async function handleStartConversationFromPicker(user) {
+    const started = await handleStartConversation(user);
+    if (started) {
+      setIsNewChatOpen(false);
     }
   }
 
@@ -931,6 +943,7 @@ export default function App() {
           onStartConversation={handleStartConversation}
           searchValue={searchValue}
           connectionLabel={connectionLabel}
+          onOpenNewChat={() => setIsNewChatOpen(true)}
           users={filteredUsers}
         />
 
@@ -953,6 +966,14 @@ export default function App() {
           callingEnabled={!usesHttpSync}
         />
       </section>
+
+      <NewChatModal
+        isOpen={isNewChatOpen}
+        onClose={() => setIsNewChatOpen(false)}
+        onStartConversation={handleStartConversationFromPicker}
+        onlineUserIds={onlineUserSet}
+        users={users}
+      />
 
       <CallPanel
         callState={callState}

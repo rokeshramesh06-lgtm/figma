@@ -637,7 +637,8 @@ button {
 }
 
 .incoming-call-card,
-.call-stage {
+.call-stage,
+.new-chat-modal {
   border-radius: 28px;
   width: min(780px, 100%);
 }
@@ -645,6 +646,47 @@ button {
 .incoming-call-card {
   max-width: 440px;
   padding: 2rem;
+}
+
+.new-chat-modal {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow: 0 25px 80px rgba(39, 94, 62, 0.2);
+  max-width: 640px;
+  padding: 1.5rem;
+}
+
+.new-chat-header {
+  align-items: flex-start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.new-chat-header h2 {
+  margin: 0 0 0.35rem;
+}
+
+.new-chat-list {
+  display: grid;
+  gap: 0.75rem;
+  max-height: min(60vh, 520px);
+  overflow: auto;
+  padding-right: 0.2rem;
+}
+
+.new-chat-card {
+  align-items: center;
+  background: rgba(248, 251, 248, 0.96);
+  border: 1px solid rgba(18, 140, 126, 0.12);
+  border-radius: 22px;
+  color: inherit;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 0.95rem 1rem;
+  text-align: left;
 }
 
 .call-stage {
@@ -731,6 +773,8 @@ button {
   .conversation-header,
   .header-actions,
   .composer,
+  .new-chat-header,
+  .new-chat-card,
   .call-header,
   .call-actions {
     align-items: stretch;

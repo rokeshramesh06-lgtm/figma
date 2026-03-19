@@ -1,5 +1,3 @@
-import { useRef } from "react";
-
 function initials(name = "") {
   return name
     .split(/\s+/)
@@ -41,16 +39,8 @@ export default function Sidebar({
   searchValue,
   onSearchChange,
   connectionLabel,
+  onOpenNewChat,
 }) {
-  const peopleSectionRef = useRef(null);
-
-  function handleOpenPeople() {
-    peopleSectionRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }
-
   return (
     <aside className="sidebar">
       <header className="sidebar-header">
@@ -67,7 +57,7 @@ export default function Sidebar({
           </div>
         </div>
         <div className="sidebar-header-actions">
-          <button className="secondary-button compact" onClick={handleOpenPeople} type="button">
+          <button className="secondary-button compact" onClick={onOpenNewChat} type="button">
             New chat
           </button>
           <button className="icon-button" onClick={onLogout} type="button">
@@ -136,7 +126,7 @@ export default function Sidebar({
         </div>
         <p className="section-copy">Tap any person below to create a direct chat instantly.</p>
 
-        <div className="contact-list" ref={peopleSectionRef}>
+        <div className="contact-list">
           {users.length ? (
             users.map((user) => (
               <button
