@@ -38,7 +38,7 @@ export default function Sidebar({
   onlineUserIds,
   searchValue,
   onSearchChange,
-  socketReady,
+  connectionLabel,
 }) {
   return (
     <aside className="sidebar">
@@ -52,7 +52,7 @@ export default function Sidebar({
           </div>
           <div>
             <strong>{currentUser.name}</strong>
-            <p>{socketReady ? "Socket connected" : "Reconnecting..."}</p>
+            <p>{connectionLabel}</p>
           </div>
         </div>
         <button className="icon-button" onClick={onLogout} type="button">

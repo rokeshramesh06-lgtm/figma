@@ -114,6 +114,17 @@ export default function App() {
   );
   const activeMessages = activeConversationId ? messagesByConversation[activeConversationId] || [] : [];
   const normalizedSearch = searchValue.trim().toLowerCase();
+  const usesHttpSync = useMemo(() => {
+    if (!serverOrigin || typeof window === "undefined") {
+      return false;
+    }
+
+    const { origin, hostname } = window.location;
+    const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1";
+    return !isLocalhost && serverOrigin === origin;
+  }, [serverOrigin]);
+  const messagingReady = socketReady || usesHttpSync;
+  const connectionLabel = usesHttpSync ? "HTTP sync active" : socketReady ? "Socket connected" : "Reconnecting...";
 
   const filteredConversations = useMemo(() => {
     if (!normalizedSearch) {
@@ -251,7 +262,7 @@ export default function App() {
     } catch {
       setServerOrigin("");
       setAuthError(
-        "This deployment is not connected to its shared backend. Set BACKEND_ORIGIN in Vercel so /api and /socket.io are proxied to the shared backend.",
+        "This deployment does not expose its built-in /api backend yet.",
       );
       return "";
     } finally {
@@ -288,7 +299,7 @@ export default function App() {
       .finally(() => {
         if (!ignore && !foundSharedBackend) {
           setAuthError(
-            "This deployment is not connected to its shared backend. Set BACKEND_ORIGIN in Vercel so /api and /socket.io are proxied to the shared backend.",
+            "This deployment does not expose its built-in /api backend yet.",
           );
         }
         if (!ignore) {
@@ -424,7 +435,7 @@ export default function App() {
   }
 
   useEffect(() => {
-    if (!token || !serverOrigin) {
+    if (!token || !serverOrigin || usesHttpSync) {
       return undefined;
     }
 
@@ -471,7 +482,16 @@ export default function App() {
     return () => {
       ignore = true;
     };
-  }, [serverOrigin, token]);
+  }, [serverOrigin, token, usesHttpSync]);
+
+  useEffect(() => {
+    if (!usesHttpSync) {
+      return;
+    }
+
+    setSocketReady(false);
+    setOnlineUserIds([]);
+  }, [usesHttpSync]);
 
   useEffect(() => {
     if (!token || !serverOrigin) {
@@ -627,6 +647,59 @@ export default function App() {
     };
   }, [activeConversationId, hasMessagesLoaded, serverOrigin, token]);
 
+  useEffect(() => {
+    if (!token || !serverOrigin || !usesHttpSync) {
+      return undefined;
+    }
+
+    let ignore = false;
+
+    async function syncHttpState() {
+      try {
+        const [usersPayload, conversationsPayload] = await Promise.all([
+          apiRequest("/api/users", { token }),
+          apiRequest("/api/conversations", { token }),
+        ]);
+
+        if (ignore) {
+          return;
+        }
+
+        setUsers(usersPayload.users);
+        setConversations(sortConversations(conversationsPayload.conversations));
+        setActiveConversationId((current) => {
+          if (current && conversationsPayload.conversations.some((item) => item.id === current)) {
+            return current;
+          }
+
+          return conversationsPayload.conversations[0]?.id || null;
+        });
+
+        if (activeConversationId) {
+          const messagesPayload = await apiRequest(`/api/conversations/${activeConversationId}/messages`, { token });
+          if (!ignore) {
+            setMessagesByConversation((current) => ({
+              ...current,
+              [activeConversationId]: messagesPayload.messages,
+            }));
+          }
+        }
+      } catch (error) {
+        if (!ignore) {
+          setNotice(error.message);
+        }
+      }
+    }
+
+    syncHttpState();
+    const intervalId = window.setInterval(syncHttpState, 3000);
+
+    return () => {
+      ignore = true;
+      window.clearInterval(intervalId);
+    };
+  }, [activeConversationId, serverOrigin, token, usesHttpSync]);
+
   async function handleAuthSubmit(form) {
     setIsAuthBusy(true);
     setAuthError("");
@@ -677,10 +750,19 @@ export default function App() {
 
     try {
       setComposerError("");
-      await emitWithAck("message:send", {
-        conversationId: activeConversationId,
-        body: messageDraft,
-      });
+      if (usesHttpSync) {
+        const payload = await apiRequest(`/api/conversations/${activeConversationId}/messages`, {
+          method: "POST",
+          token,
+          body: { body: messageDraft },
+        });
+        setMessagesByConversation((current) => appendMessage(current, payload.message));
+      } else {
+        await emitWithAck("message:send", {
+          conversationId: activeConversationId,
+          body: messageDraft,
+        });
+      }
       setMessageDraft("");
     } catch (error) {
       setComposerError(error.message);
@@ -689,6 +771,11 @@ export default function App() {
 
   async function handleStartCall(kind) {
     if (!activeConversation?.otherUser) {
+      return;
+    }
+
+    if (usesHttpSync) {
+      setNotice("Calling is not available on this hosted deployment yet.");
       return;
     }
 
@@ -835,13 +922,13 @@ export default function App() {
           currentUser={session.user}
           onlineUserIds={onlineUserSet}
           onLogout={signOut}
-          onSearchChange={setSearchValue}
-          onSelectConversation={setActiveConversationId}
-          onStartConversation={handleStartConversation}
-          searchValue={searchValue}
-          socketReady={socketReady}
-          users={filteredUsers}
-        />
+        onSearchChange={setSearchValue}
+        onSelectConversation={setActiveConversationId}
+        onStartConversation={handleStartConversation}
+        searchValue={searchValue}
+        connectionLabel={connectionLabel}
+        users={filteredUsers}
+      />
 
         <ConversationPane
           composerError={composerError}
@@ -856,7 +943,8 @@ export default function App() {
           onSend={handleSendMessage}
           onStartCall={handleStartCall}
           onlineUserIds={onlineUserSet}
-          socketReady={socketReady}
+          messagingReady={messagingReady}
+          callingEnabled={!usesHttpSync}
         />
       </section>
 

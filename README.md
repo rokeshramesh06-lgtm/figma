@@ -19,20 +19,20 @@ The app runs at `http://localhost:5173` and the API/socket server runs at `http:
 
 ## Important hosting note
 
-GitHub Pages can only host the frontend files. Sign up, sign in, chat persistence, and calling still require the Node + SQLite backend to be running separately.
+GitHub Pages can only host the frontend files. This repo's Vercel setup now exposes the HTTP `/api` backend from the same project, while local development still runs the standalone Node server.
 
 - For local use, run `npm run dev` so the frontend talks to `http://127.0.0.1:3001`.
-- For deployed use, host the backend on a Node service and set `BACKEND_ORIGIN` in Vercel so the site proxies `/api` and `/socket.io` to that backend.
+- For deployed use on Vercel, this repo now routes `/api/*` into a Node function from the same project.
 - If you are using GitHub Pages, this repo now includes a Pages workflow that deploys the built `dist` bundle from `main`.
-- End users no longer enter backend URLs manually. The deployment should provide one shared backend for everyone.
+- End users no longer enter backend URLs manually.
 
 ## Vercel note
 
-Hosted frontends now probe `GET /api/health` on their own origin. On Vercel, this repo can proxy `/api` and `/socket.io` to one shared backend using `BACKEND_ORIGIN`.
+Hosted frontends now probe `GET /api/health` on their own origin. This repo includes a Vercel `/api` function entrypoint, so auth and core chat data can run on the website itself.
 
 - If your deployment exposes the API on the same origin, the app will pick it up automatically.
-- If that health check fails, configure `BACKEND_ORIGIN` in Vercel so the whole site uses one shared backend automatically through same-origin proxying.
-- Deploying only the Vite frontend to Vercel still does not make this Express + Socket.IO + SQLite backend available automatically, so in that setup you still need a separately hosted backend.
+- On hosted same-origin deployments, the app falls back to HTTP sync for messaging if Socket.IO is unavailable.
+- SQLite on Vercel uses ephemeral storage, so hosted data is not durable across cold restarts. For long-term production persistence, use a managed database instead.
 
 ## Test it locally
 

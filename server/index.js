@@ -2,24 +2,17 @@ import fs from "node:fs";
 import path from "node:path";
 import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
-import bcrypt from "bcryptjs";
-import cors from "cors";
 import express from "express";
 import jwt from "jsonwebtoken";
 import { Server } from "socket.io";
+import { createApp, JWT_SECRET, corsOptions } from "./app.js";
 import {
   createCall,
   createMessage,
-  createUser,
   getCallById,
   getConversationIdsForUser,
   getConversationMemberIds,
   getConversationSummaryForUser,
-  getConversationsForUser,
-  getMessagesForConversation,
-  getOrCreateDirectConversation,
-  getPublicUsers,
-  getUserByEmail,
   getUserById,
   isConversationMember,
   updateCallStatus,
@@ -31,61 +24,8 @@ const workspaceRoot = path.resolve(__dirname, "..");
 const distDir = path.join(workspaceRoot, "dist");
 
 const PORT = Number(process.env.PORT || 3001);
-const JWT_SECRET = process.env.JWT_SECRET || "replace-this-in-production";
-
-const corsOptions = {
-  origin(_origin, callback) {
-    callback(null, true);
-  },
-  methods: ["GET", "POST"],
-};
-
-const app = express();
-const httpServer = createServer(app);
-const io = new Server(httpServer, {
-  cors: corsOptions,
-});
-
-app.use(cors(corsOptions));
-app.use(express.json());
 
 const onlineSockets = new Map();
-
-function getTokenFromRequest(headers = {}) {
-  const authHeader = headers.authorization;
-  if (!authHeader?.startsWith("Bearer ")) {
-    return null;
-  }
-
-  return authHeader.slice("Bearer ".length);
-}
-
-function signToken(user) {
-  return jwt.sign({ sub: user.id }, JWT_SECRET, { expiresIn: "7d" });
-}
-
-function authRequired(req, res, next) {
-  const token = getTokenFromRequest(req.headers);
-  if (!token) {
-    res.status(401).json({ error: "Authentication required." });
-    return;
-  }
-
-  try {
-    const payload = jwt.verify(token, JWT_SECRET);
-    const user = getUserById(payload.sub);
-
-    if (!user) {
-      res.status(401).json({ error: "Account not found." });
-      return;
-    }
-
-    req.user = user;
-    next();
-  } catch {
-    res.status(401).json({ error: "Invalid token." });
-  }
-}
 
 function addSocketForUser(userId, socketId) {
   const existing = onlineSockets.get(userId) ?? new Set();
@@ -113,7 +53,7 @@ function getOnlineUserIds() {
   return [...onlineSockets.keys()].map(Number);
 }
 
-function joinUserSocketsToConversation(userId, conversationId) {
+function joinUserSocketsToConversation(io, userId, conversationId) {
   const socketIds = onlineSockets.get(userId);
   if (!socketIds) {
     return;
@@ -124,7 +64,7 @@ function joinUserSocketsToConversation(userId, conversationId) {
   }
 }
 
-function emitConversationSummary(conversationId) {
+function emitConversationSummary(io, conversationId) {
   const memberIds = getConversationMemberIds(conversationId);
   for (const memberId of memberIds) {
     const summary = getConversationSummaryForUser(conversationId, memberId);
@@ -134,125 +74,28 @@ function emitConversationSummary(conversationId) {
   }
 }
 
-app.get("/api/health", (_req, res) => {
-  res.json({ ok: true });
+let io;
+
+const app = createApp({
+  onConversationCreated({ conversation, memberIds }) {
+    for (const memberId of memberIds) {
+      joinUserSocketsToConversation(io, memberId, conversation.id);
+    }
+
+    for (const memberId of memberIds) {
+      const summary = getConversationSummaryForUser(conversation.id, memberId);
+      io.to(`user:${memberId}`).emit("conversation:created", { conversation: summary });
+    }
+  },
+  onMessageCreated({ conversationId, message }) {
+    io.to(`conversation:${conversationId}`).emit("message:new", { message });
+    emitConversationSummary(io, conversationId);
+  },
 });
 
-app.post("/api/auth/signup", async (req, res) => {
-  const name = String(req.body?.name || "").trim();
-  const email = String(req.body?.email || "").trim().toLowerCase();
-  const password = String(req.body?.password || "");
-
-  if (!name || !email || password.length < 6) {
-    res.status(400).json({ error: "Name, email, and a 6+ character password are required." });
-    return;
-  }
-
-  if (getUserByEmail(email)) {
-    res.status(409).json({ error: "That email is already registered." });
-    return;
-  }
-
-  const passwordHash = await bcrypt.hash(password, 10);
-  const user = createUser({ name, email, passwordHash });
-  const token = signToken(user);
-
-  res.status(201).json({ token, user });
-});
-
-app.post("/api/auth/signin", async (req, res) => {
-  const email = String(req.body?.email || "").trim().toLowerCase();
-  const password = String(req.body?.password || "");
-  const userRecord = getUserByEmail(email);
-
-  if (!userRecord) {
-    res.status(401).json({ error: "Invalid email or password." });
-    return;
-  }
-
-  const passwordMatches = await bcrypt.compare(password, userRecord.password_hash);
-  if (!passwordMatches) {
-    res.status(401).json({ error: "Invalid email or password." });
-    return;
-  }
-
-  const user = getUserById(userRecord.id);
-  const token = signToken(user);
-  res.json({ token, user });
-});
-
-app.get("/api/auth/me", authRequired, (req, res) => {
-  res.json({ user: req.user });
-});
-
-app.get("/api/users", authRequired, (req, res) => {
-  res.json({ users: getPublicUsers(req.user.id) });
-});
-
-app.get("/api/conversations", authRequired, (req, res) => {
-  res.json({ conversations: getConversationsForUser(req.user.id) });
-});
-
-app.post("/api/conversations/direct", authRequired, (req, res) => {
-  const otherUserId = Number(req.body?.userId);
-
-  if (!otherUserId || otherUserId === req.user.id) {
-    res.status(400).json({ error: "Choose another user to start chatting." });
-    return;
-  }
-
-  const otherUser = getUserById(otherUserId);
-  if (!otherUser) {
-    res.status(404).json({ error: "User not found." });
-    return;
-  }
-
-  const conversation = getOrCreateDirectConversation(req.user.id, otherUserId);
-  const memberIds = getConversationMemberIds(conversation.id);
-
-  for (const memberId of memberIds) {
-    joinUserSocketsToConversation(memberId, conversation.id);
-  }
-
-  for (const memberId of memberIds) {
-    const summary = getConversationSummaryForUser(conversation.id, memberId);
-    io.to(`user:${memberId}`).emit("conversation:created", { conversation: summary });
-  }
-
-  res.status(201).json({ conversation });
-});
-
-app.get("/api/conversations/:conversationId/messages", authRequired, (req, res) => {
-  const conversationId = Number(req.params.conversationId);
-  const messages = getMessagesForConversation(conversationId, req.user.id);
-
-  if (!messages) {
-    res.status(404).json({ error: "Conversation not found." });
-    return;
-  }
-
-  res.json({ messages });
-});
-
-app.post("/api/conversations/:conversationId/messages", authRequired, (req, res) => {
-  const conversationId = Number(req.params.conversationId);
-  const body = String(req.body?.body || "").trim();
-
-  if (!body) {
-    res.status(400).json({ error: "Message text is required." });
-    return;
-  }
-
-  if (!isConversationMember(conversationId, req.user.id)) {
-    res.status(404).json({ error: "Conversation not found." });
-    return;
-  }
-
-  const message = createMessage({ conversationId, senderId: req.user.id, body });
-  io.to(`conversation:${conversationId}`).emit("message:new", { message });
-  emitConversationSummary(conversationId);
-
-  res.status(201).json({ message });
+const httpServer = createServer(app);
+io = new Server(httpServer, {
+  cors: corsOptions,
 });
 
 io.use((socket, next) => {
@@ -310,7 +153,7 @@ io.on("connection", (socket) => {
 
       const message = createMessage({ conversationId, senderId: user.id, body });
       io.to(`conversation:${conversationId}`).emit("message:new", { message });
-      emitConversationSummary(conversationId);
+      emitConversationSummary(io, conversationId);
       ack({ ok: true, message });
     } catch (error) {
       ack({ ok: false, error: error.message || "Unable to send message." });

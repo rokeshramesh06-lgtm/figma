@@ -110,9 +110,8 @@ export default function AuthScreen({
                 enter anything here.
               </p>
               <p className="server-warning">
-                The deployment could not find its configured backend yet. Retry the check, or set
-                `BACKEND_ORIGIN` in Vercel so this site can proxy `/api` and `/socket.io` to the
-                shared backend.
+                The deployment could not find its built-in `/api` backend yet. Retry the check
+                after the latest Vercel deploy finishes.
               </p>
               <div className="server-actions">
                 <button className="secondary-button" onClick={onDetectServerOrigin} type="button">

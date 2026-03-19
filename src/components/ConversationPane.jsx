@@ -23,7 +23,8 @@ export default function ConversationPane({
   onSend,
   onStartCall,
   onlineUserIds,
-  socketReady,
+  messagingReady,
+  callingEnabled,
   loadingMessages,
   composerError,
   notice,
@@ -64,10 +65,10 @@ export default function ConversationPane({
         </div>
 
         <div className="header-actions">
-          <button className="icon-button" onClick={() => onStartCall("audio")} type="button">
+          <button className="icon-button" disabled={!callingEnabled} onClick={() => onStartCall("audio")} type="button">
             Audio call
           </button>
-          <button className="primary-button compact" onClick={() => onStartCall("video")} type="button">
+          <button className="primary-button compact" disabled={!callingEnabled} onClick={() => onStartCall("video")} type="button">
             Video call
           </button>
         </div>
@@ -101,13 +102,13 @@ export default function ConversationPane({
 
       <form className="composer" onSubmit={onSend}>
         <textarea
-          disabled={!socketReady}
+          disabled={!messagingReady}
           onChange={(event) => onDraftChange(event.target.value)}
-          placeholder={socketReady ? "Type a message" : "Connecting to realtime service..."}
+          placeholder={messagingReady ? "Type a message" : "Connecting to chat service..."}
           rows={1}
           value={draft}
         />
-        <button className="primary-button compact" disabled={!socketReady || !draft.trim()} type="submit">
+        <button className="primary-button compact" disabled={!messagingReady || !draft.trim()} type="submit">
           Send
         </button>
       </form>
@@ -116,4 +117,3 @@ export default function ConversationPane({
     </section>
   );
 }
-

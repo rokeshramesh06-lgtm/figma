@@ -4,7 +4,8 @@ import Database from "better-sqlite3";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const dbPath = path.join(__dirname, "chat.sqlite");
+const runningOnVercel = Boolean(process.env.VERCEL);
+const dbPath = runningOnVercel ? path.join("/tmp", "chat.sqlite") : path.join(__dirname, "chat.sqlite");
 
 const db = new Database(dbPath);
 
@@ -459,4 +460,3 @@ export function updateCallStatus(callId, status) {
   db.prepare(`UPDATE calls SET status = ?, ended_at = ? WHERE id = ?`).run(status, endedAt, callId);
   return getCallById(callId);
 }
-
