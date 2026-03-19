@@ -316,6 +316,8 @@ button {
 .sidebar-header,
 .identity-card,
 .contact-main,
+.sidebar-header-actions,
+.contact-actions,
 .section-heading,
 .conversation-line,
 .header-actions,
@@ -332,6 +334,11 @@ button {
 .conversation-line,
 .call-header {
   justify-content: space-between;
+}
+
+.sidebar-header-actions,
+.contact-actions {
+  justify-content: flex-end;
 }
 
 .identity-card p,
@@ -372,6 +379,12 @@ button {
 .section-heading span {
   color: rgba(23, 49, 38, 0.6);
   font-size: 0.88rem;
+}
+
+.section-copy {
+  color: rgba(23, 49, 38, 0.66);
+  font-size: 0.9rem;
+  margin: -0.3rem 0 0;
 }
 
 .conversation-list,
@@ -439,6 +452,11 @@ button {
   justify-content: space-between;
 }
 
+.contact-actions {
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
 .presence-chip {
   border-radius: 999px;
   color: rgba(23, 49, 38, 0.65);
@@ -450,6 +468,12 @@ button {
 .presence-chip.online {
   background: rgba(15, 157, 88, 0.12);
   color: #0f9d58;
+}
+
+.contact-cta {
+  color: #128c7e;
+  font-size: 0.84rem;
+  font-weight: 700;
 }
 
 .conversation-pane {
@@ -558,6 +582,33 @@ button {
   border-radius: 28px;
   max-width: 560px;
   padding: 2rem;
+}
+
+.starter-grid {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 1.35rem;
+}
+
+.starter-card {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(18, 140, 126, 0.14);
+  border-radius: 22px;
+  color: inherit;
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem 1.1rem;
+  text-align: left;
+}
+
+.starter-copy p {
+  color: rgba(23, 49, 38, 0.66);
+  margin: 0.2rem 0 0;
+}
+
+.starter-empty {
+  margin-top: 1rem;
 }
 
 .empty-copy {
@@ -688,6 +739,16 @@ button {
 
   .message-bubble {
     max-width: 88%;
+  }
+
+  .contact-card,
+  .starter-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .contact-actions {
+    align-items: flex-start;
   }
 
   .media-grid {

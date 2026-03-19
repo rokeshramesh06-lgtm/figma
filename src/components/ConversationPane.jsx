@@ -17,10 +17,12 @@ function messageTime(isoString) {
 export default function ConversationPane({
   conversation,
   currentUser,
+  availableUsers,
   messages,
   draft,
   onDraftChange,
   onSend,
+  onStartConversation,
   onStartCall,
   onlineUserIds,
   messagingReady,
@@ -35,11 +37,33 @@ export default function ConversationPane({
       <section className="conversation-pane empty-state-pane">
         <div className="welcome-card">
           <p className="eyebrow">Ready to chat</p>
-          <h2>Select a chat or start one from the people list.</h2>
+          <h2>Start a chat with one of your contacts.</h2>
           <p className="subtle-copy">
-            Open this app in two browser windows, create two accounts, and you can test messaging
-            and calling immediately.
+            Open this app in two browser windows, create two accounts, then use the quick actions
+            below or the `New chat` button in the sidebar.
           </p>
+          {availableUsers.length ? (
+            <div className="starter-grid">
+              {availableUsers.slice(0, 4).map((user) => (
+                <button
+                  className="starter-card"
+                  key={user.id}
+                  onClick={() => onStartConversation(user)}
+                  type="button"
+                >
+                  <div className="starter-copy">
+                    <strong>{user.name}</strong>
+                    <p>{user.email}</p>
+                  </div>
+                  <span className="contact-cta">Start chat</span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="empty-copy starter-empty">
+              Once another account signs in, that person will appear here and in the people list.
+            </p>
+          )}
         </div>
       </section>
     );

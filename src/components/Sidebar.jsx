@@ -1,3 +1,5 @@
+import { useRef } from "react";
+
 function initials(name = "") {
   return name
     .split(/\s+/)
@@ -40,6 +42,15 @@ export default function Sidebar({
   onSearchChange,
   connectionLabel,
 }) {
+  const peopleSectionRef = useRef(null);
+
+  function handleOpenPeople() {
+    peopleSectionRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
+
   return (
     <aside className="sidebar">
       <header className="sidebar-header">
@@ -55,9 +66,14 @@ export default function Sidebar({
             <p>{connectionLabel}</p>
           </div>
         </div>
-        <button className="icon-button" onClick={onLogout} type="button">
-          Log out
-        </button>
+        <div className="sidebar-header-actions">
+          <button className="secondary-button compact" onClick={handleOpenPeople} type="button">
+            New chat
+          </button>
+          <button className="icon-button" onClick={onLogout} type="button">
+            Log out
+          </button>
+        </div>
       </header>
 
       <label className="search-shell">
@@ -118,8 +134,9 @@ export default function Sidebar({
           <h2>People</h2>
           <span>{users.length}</span>
         </div>
+        <p className="section-copy">Tap any person below to create a direct chat instantly.</p>
 
-        <div className="contact-list">
+        <div className="contact-list" ref={peopleSectionRef}>
           {users.length ? (
             users.map((user) => (
               <button
@@ -140,9 +157,12 @@ export default function Sidebar({
                     <p>{user.email}</p>
                   </div>
                 </div>
-                <span className={`presence-chip ${onlineUserIds.has(user.id) ? "online" : ""}`}>
-                  {onlineUserIds.has(user.id) ? "Online" : "Offline"}
-                </span>
+                <div className="contact-actions">
+                  <span className={`presence-chip ${onlineUserIds.has(user.id) ? "online" : ""}`}>
+                    {onlineUserIds.has(user.id) ? "Online" : "Offline"}
+                  </span>
+                  <span className="contact-cta">Start chat</span>
+                </div>
               </button>
             ))
           ) : (

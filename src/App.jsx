@@ -935,6 +935,7 @@ export default function App() {
         />
 
         <ConversationPane
+          availableUsers={filteredUsers}
           composerError={composerError}
           conversation={activeConversation}
           currentUser={session.user}
@@ -945,6 +946,7 @@ export default function App() {
           notice={notice}
           onDraftChange={setMessageDraft}
           onSend={handleSendMessage}
+          onStartConversation={handleStartConversation}
           onStartCall={handleStartCall}
           onlineUserIds={onlineUserSet}
           messagingReady={messagingReady}
