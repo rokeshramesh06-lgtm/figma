@@ -1,5 +1,4 @@
 export const fallbackLocalServerOrigin = "http://127.0.0.1:3001";
-const configuredServerOrigin = import.meta.env?.VITE_SERVER_ORIGIN?.replace(/\/$/, "");
 
 export function normalizeServerOrigin(value) {
   const normalizedValue = String(value || "").trim().replace(/\/$/, "");
@@ -16,11 +15,6 @@ export function normalizeServerOrigin(value) {
 }
 
 function inferServerOrigin() {
-  const normalizedConfiguredOrigin = normalizeServerOrigin(configuredServerOrigin);
-  if (normalizedConfiguredOrigin) {
-    return normalizedConfiguredOrigin;
-  }
-
   if (typeof window === "undefined") {
     return fallbackLocalServerOrigin;
   }
