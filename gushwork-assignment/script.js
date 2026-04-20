@@ -145,7 +145,7 @@ carouselViewport.addEventListener("scroll", updateCarousel, { passive: true });
 form.addEventListener("submit", (event) => {
   event.preventDefault();
   form.reset();
-  formNote.textContent = "Thanks. The benchmark pack is ready to send.";
+  formNote.textContent = "Thanks. The website review package is ready to send.";
 });
 
 bindZoomCards();
