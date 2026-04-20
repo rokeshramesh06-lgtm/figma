@@ -5,3 +5,4 @@ server/chat.sqlite-shm
 server/chat.sqlite-wal
 .DS_Store
 *.log
+.vercel/
