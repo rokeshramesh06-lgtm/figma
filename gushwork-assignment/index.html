@@ -16,10 +16,10 @@
     <header class="floating-header" id="floatingHeader" aria-hidden="true">
       <div class="container floating-header__inner">
         <div>
-          <span class="floating-header__eyebrow">Market signal briefing</span>
-          <strong>New automation report is ready for review</strong>
+          <span class="floating-header__eyebrow">Natural design refresh</span>
+          <strong>Explore the new photo-led field report</strong>
         </div>
-        <a href="#contact" class="button button--light">Download report</a>
+        <a href="#contact" class="button button--light">Get the pack</a>
       </div>
     </header>
 
@@ -56,37 +56,42 @@
 
     <main id="main">
       <section class="hero" id="top" aria-labelledby="hero-title">
+        <img
+          class="hero__photo"
+          src="assets/hero-forest.jpg"
+          alt="Sunlit green forest trail with tall trees"
+          width="1800"
+          height="1100"
+        />
         <div class="container hero__grid">
-          <div class="hero__media">
-            <img
-              src="assets/article-hero.svg"
-              alt="Abstract editorial collage of desks, screens, and data overlays"
-              width="640"
-              height="520"
-            />
-          </div>
-
           <div class="hero__content">
-            <p class="eyebrow">Research brief</p>
-            <h1 id="hero-title">How high-growth teams turn scattered work into reliable operations</h1>
+            <p class="eyebrow">Nature-led research brief</p>
+            <h1 id="hero-title">Calm natural interfaces for focused teams</h1>
             <p class="hero__summary">
-              A practical look at the signals, systems, and repeatable workflows that help teams move
-              faster without losing visibility.
+              A cleaner visual system with natural photography, generous spacing, and smooth
+              interactions that make the page feel more premium on every screen.
             </p>
 
-            <div class="hero-card" aria-label="Featured quote">
-              <p>
-                "The strongest teams are not adding more dashboards. They are connecting the work
-                people already do."
-              </p>
-              <span>Operations benchmark, 2026</span>
-            </div>
-
             <div class="hero__actions" aria-label="Primary calls to action">
-              <a class="button button--primary" href="#carousel">Explore reports</a>
-              <a class="button button--ghost" href="#workflow">See workflow</a>
+              <a class="button button--primary" href="#carousel">View photo stories</a>
+              <a class="button button--ghost" href="#workflow">See layout</a>
             </div>
           </div>
+
+          <dl class="hero__stats" aria-label="Design highlights">
+            <div>
+              <dt>6</dt>
+              <dd>local nature photos</dd>
+            </div>
+            <div>
+              <dt>100%</dt>
+              <dd>vanilla HTML/CSS/JS</dd>
+            </div>
+            <div>
+              <dt>3</dt>
+              <dd>responsive breakpoints</dd>
+            </div>
+          </dl>
         </div>
       </section>
 
@@ -112,22 +117,32 @@
             </p>
           </div>
 
-          <div class="metric-table" role="table" aria-label="Operational impact metrics">
-            <div role="row">
-              <span role="cell">Manual follow-ups reduced</span>
-              <strong role="cell">48%</strong>
-            </div>
-            <div role="row">
-              <span role="cell">Average request turnaround</span>
-              <strong role="cell">2.4 days</strong>
-            </div>
-            <div role="row">
-              <span role="cell">Tasks routed with context</span>
-              <strong role="cell">91%</strong>
-            </div>
-            <div role="row">
-              <span role="cell">Weekly reporting time saved</span>
-              <strong role="cell">12 hrs</strong>
+          <div class="data-panel">
+            <img
+              src="assets/lake-mountain.jpg"
+              alt="Misty river valley and mountain silhouettes at sunrise"
+              width="1200"
+              height="850"
+              loading="lazy"
+              decoding="async"
+            />
+            <div class="metric-table" role="table" aria-label="Operational impact metrics">
+              <div role="row">
+                <span role="cell">Manual follow-ups reduced</span>
+                <strong role="cell">48%</strong>
+              </div>
+              <div role="row">
+                <span role="cell">Average request turnaround</span>
+                <strong role="cell">2.4 days</strong>
+              </div>
+              <div role="row">
+                <span role="cell">Tasks routed with context</span>
+                <strong role="cell">91%</strong>
+              </div>
+              <div role="row">
+                <span role="cell">Weekly reporting time saved</span>
+                <strong role="cell">12 hrs</strong>
+              </div>
             </div>
           </div>
         </div>
@@ -197,8 +212,8 @@
 
           <div class="workflow__image">
             <img
-              src="assets/workflow-panel.svg"
-              alt="Dashboard style panel showing operational queues and progress cards"
+              src="assets/forest-trail.jpg"
+              alt="Aerial view of a winding road through a dense green forest"
               width="680"
               height="460"
               loading="lazy"
@@ -229,10 +244,10 @@
             <div class="carousel-viewport" id="carouselViewport">
               <div class="carousel-track" id="carouselTrack">
                 <article class="report-card">
-                  <a href="#contact" class="report-card__media" data-zoom="assets/report-automation.svg">
+                  <a href="#contact" class="report-card__media" data-zoom="assets/coastline.jpg">
                     <img
-                      src="assets/report-automation.svg"
-                      alt="Automation report cover with data tiles"
+                      src="assets/coastline.jpg"
+                      alt="Soft sunrise light over a turquoise coastline"
                       width="480"
                       height="320"
                       loading="lazy"
@@ -240,16 +255,16 @@
                     />
                   </a>
                   <div class="report-card__body">
-                    <span>Automation</span>
-                    <h3>Designing operations that scale with demand</h3>
+                    <span>Coast</span>
+                    <h3>Open space for clearer decisions</h3>
                   </div>
                 </article>
 
                 <article class="report-card">
-                  <a href="#contact" class="report-card__media" data-zoom="assets/report-research.svg">
+                  <a href="#contact" class="report-card__media" data-zoom="assets/lake-mountain.jpg">
                     <img
-                      src="assets/report-research.svg"
-                      alt="Research report cover with connected evidence cards"
+                      src="assets/lake-mountain.jpg"
+                      alt="Calm mountain valley with river and morning mist"
                       width="480"
                       height="320"
                       loading="lazy"
@@ -257,16 +272,16 @@
                     />
                   </a>
                   <div class="report-card__body">
-                    <span>Research</span>
-                    <h3>Turning source material into clear decisions</h3>
+                    <span>Valley</span>
+                    <h3>Soft contrast for readable sections</h3>
                   </div>
                 </article>
 
                 <article class="report-card">
-                  <a href="#contact" class="report-card__media" data-zoom="assets/report-routing.svg">
+                  <a href="#contact" class="report-card__media" data-zoom="assets/forest-trail.jpg">
                     <img
-                      src="assets/report-routing.svg"
-                      alt="Routing report cover with workflow nodes"
+                      src="assets/forest-trail.jpg"
+                      alt="Dense forest seen from above with a path through the trees"
                       width="480"
                       height="320"
                       loading="lazy"
@@ -274,16 +289,16 @@
                     />
                   </a>
                   <div class="report-card__body">
-                    <span>Routing</span>
-                    <h3>Reducing handoff delay across active teams</h3>
+                    <span>Forest</span>
+                    <h3>Layered depth without visual clutter</h3>
                   </div>
                 </article>
 
                 <article class="report-card">
-                  <a href="#contact" class="report-card__media" data-zoom="assets/report-analytics.svg">
+                  <a href="#contact" class="report-card__media" data-zoom="assets/river-canyon.jpg">
                     <img
-                      src="assets/report-analytics.svg"
-                      alt="Analytics report cover with charts and market signal blocks"
+                      src="assets/river-canyon.jpg"
+                      alt="Snowy mountain range and green valley under a blue sky"
                       width="480"
                       height="320"
                       loading="lazy"
@@ -291,8 +306,8 @@
                     />
                   </a>
                   <div class="report-card__body">
-                    <span>Analytics</span>
-                    <h3>What teams measure when speed matters</h3>
+                    <span>Summit</span>
+                    <h3>Bold imagery for stronger storytelling</h3>
                   </div>
                 </article>
               </div>
@@ -326,8 +341,8 @@
           </div>
           <div class="story__panel">
             <img
-              src="assets/article-hero.svg"
-              alt="Abstract operational intelligence collage"
+              src="assets/green-valley.jpg"
+              alt="Layered green mountain ridges fading into warm evening light"
               width="560"
               height="360"
               loading="lazy"
