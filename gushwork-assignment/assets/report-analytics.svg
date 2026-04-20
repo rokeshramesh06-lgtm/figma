@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" role="img" aria-labelledby="title desc">
+  <title id="title">Analytics report</title>
+  <desc id="desc">Report cover with chart panels, red accent line, and yellow metric tile.</desc>
+  <rect width="480" height="320" fill="#eef1f7"/>
+  <rect x="28" y="28" width="424" height="264" rx="14" fill="#ffffff"/>
+  <rect x="58" y="62" width="120" height="12" rx="6" fill="#101827"/>
+  <rect x="58" y="92" width="168" height="7" rx="3.5" fill="#aeb6c6"/>
+  <rect x="58" y="114" width="120" height="7" rx="3.5" fill="#d2d7e2"/>
+  <rect x="58" y="166" width="96" height="82" rx="8" fill="#273b98"/>
+  <rect x="174" y="142" width="96" height="106" rx="8" fill="#101827"/>
+  <rect x="290" y="104" width="96" height="144" rx="8" fill="#f0cf5a"/>
+  <path d="M76 222c46-68 84 8 130-42 36-40 74-86 142-60" fill="none" stroke="#a83345" stroke-width="8" stroke-linecap="round"/>
+  <g fill="#ffffff" opacity=".85">
+    <rect x="78" y="184" width="48" height="7" rx="3.5"/>
+    <rect x="194" y="164" width="46" height="7" rx="3.5"/>
+  </g>
+  <g fill="#101827" opacity=".72">
+    <rect x="312" y="132" width="42" height="7" rx="3.5"/>
+    <rect x="312" y="154" width="52" height="7" rx="3.5"/>
+  </g>
+</svg>
